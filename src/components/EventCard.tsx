@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import type { EventCard as EventCardType } from '../types';
-import { Phone, Mail, MessageCircle, FileText, ChevronDown, ChevronUp, GripVertical, Key, MapPin, Globe, Sparkles } from 'lucide-react';
-import { motion } from 'framer-motion';
-import { useItineraryStore } from '../store/useItineraryStore';
+import { Phone, Mail, MessageCircle, FileText, ChevronDown, ChevronUp, GripVertical, Key, MapPin, Globe, Sparkles, AlertTriangle } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useItineraryStore, getTravelConflicts } from '../store/useItineraryStore';
 
 interface EventCardProps {
   event: EventCardType;
@@ -14,8 +14,11 @@ interface EventCardProps {
 export const EventCard: React.FC<EventCardProps> = ({ event, onDragStart, onDragOver, onDrop }) => {
   const [isOpen, setIsOpen] = useState(false);
 
-  const { selectedEventId, selectEvent } = useItineraryStore();
+  const { selectedEventId, selectEvent, days } = useItineraryStore();
   const isSelected = selectedEventId === event.id;
+
+  const conflicts = getTravelConflicts(days);
+  const hasConflict = conflicts.has(event.id);
 
   const handleWhatsAppClick = (e: React.MouseEvent, number?: string) => {
     e.stopPropagation();
@@ -24,17 +27,40 @@ export const EventCard: React.FC<EventCardProps> = ({ event, onDragStart, onDrag
     window.open(`https://wa.me/${number}?text=${greeting}`, '_blank');
   };
 
+  const allMedia = React.useMemo(() => {
+    const list = [];
+    if (event.imageUrl) list.push({ type: 'image', url: event.imageUrl });
+    if (event.media) list.push(...event.media);
+    return list;
+  }, [event.imageUrl, event.media]);
+
+  const [mediaIdx, setMediaIdx] = useState(0);
+
+  React.useEffect(() => {
+    if (allMedia.length <= 1) return;
+    const interval = setInterval(() => {
+      setMediaIdx(prev => (prev + 1) % allMedia.length);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [allMedia.length]);
+
   return (
-    <div
+    <motion.div
       draggable
-      onDragStart={(e) => onDragStart(e, event.id)}
+      onDragStart={(e: any) => onDragStart(e, event.id)}
       onDragOver={onDragOver}
-      onDrop={(e) => onDrop(e, event.id)}
+      onDrop={(e: any) => onDrop(e, event.id)}
       onClick={() => selectEvent(event.id)}
-      className={`glass-panel p-4 rounded-xl mb-4 text-sand relative group cursor-grab active:cursor-grabbing transition-all ${event.isGoldKey ? 'border border-gold/50 shadow-[0_0_15px_rgba(212,175,55,0.2)]' : ''} ${isSelected ? 'ring-2 ring-gold' : ''}`}
+      whileTap={{ scale: 1.05 }}
+      className={`glass-panel p-4 rounded-xl mb-4 text-sand relative group cursor-grab active:cursor-grabbing transition-all ${event.isGoldKey ? 'border border-gold/50 shadow-[0_0_25px_rgba(212,175,55,0.3)]' : ''} ${isSelected ? 'ring-2 ring-gold' : ''}`}
     >
       {/* Top Right Controls */}
       <div className="absolute top-2 right-2 flex items-center gap-2">
+        {hasConflict && (
+          <div className="text-amber-500 animate-pulse" title="Scheduling Conflict Detected">
+            <AlertTriangle size={18} />
+          </div>
+        )}
         {event.isGoldKey && (
           <div className="text-gold" title="Insider Connect">
             <Key size={18} />
@@ -47,7 +73,7 @@ export const EventCard: React.FC<EventCardProps> = ({ event, onDragStart, onDrag
 
       <h3 className="text-xl font-semibold text-gold mb-1 pr-6">{event.title}</h3>
       {(event.time || event.location) && (
-        <div className="text-sm text-white/60 mb-2 flex items-center flex-wrap gap-1">
+        <div className="text-sm text-sand/90 font-medium mb-2 flex items-center flex-wrap gap-1">
           {event.time && <span>{event.time}</span>}
           {event.time && event.location && <span>•</span>}
           {event.location && (
@@ -88,25 +114,40 @@ export const EventCard: React.FC<EventCardProps> = ({ event, onDragStart, onDrag
       )}
 
       {/* Media Rendering */}
-      {((event.media && event.media.length > 0) || event.imageUrl) && (
-        <div className="mb-4 rounded-lg overflow-hidden border border-white/10">
-          {event.imageUrl && (
-            <img src={event.imageUrl} alt="Event Media" className="w-full h-40 object-cover" />
-          )}
-          {!event.imageUrl && event.media && event.media[0].type === 'image' && (
-            <img src={event.media[0].url} alt="Event Media" className="w-full h-40 object-cover" />
-          )}
-          {!event.imageUrl && event.media && event.media[0].type === 'youtube' && (
-            <iframe 
-              className="w-full h-40" 
-              src={event.media[0].url} 
-              title="YouTube video" 
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-              allowFullScreen 
-            />
-          )}
-          {!event.imageUrl && event.media && event.media[0].type === 'video' && (
-            <video src={event.media[0].url} controls className="w-full h-40 object-cover" playsInline />
+      {allMedia.length > 0 && (
+        <div className="mb-4 rounded-lg overflow-hidden border border-white/10 relative h-40 bg-black/40">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={mediaIdx}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.5 }}
+              className="absolute inset-0 w-full h-full"
+            >
+              {allMedia[mediaIdx].type === 'image' && (
+                <img src={allMedia[mediaIdx].url} alt="Event Media" className="w-full h-full object-cover" />
+              )}
+              {allMedia[mediaIdx].type === 'youtube' && (
+                <iframe 
+                  className="w-full h-full" 
+                  src={allMedia[mediaIdx].url} 
+                  title="YouTube video" 
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                  allowFullScreen 
+                />
+              )}
+              {allMedia[mediaIdx].type === 'video' && (
+                <video src={allMedia[mediaIdx].url} controls className="w-full h-full object-cover" playsInline />
+              )}
+            </motion.div>
+          </AnimatePresence>
+          {allMedia.length > 1 && (
+            <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1.5 z-10">
+              {allMedia.map((_, idx) => (
+                <div key={idx} className={`h-1.5 rounded-full transition-all ${idx === mediaIdx ? 'w-4 bg-gold' : 'w-1.5 bg-white/50'}`} />
+              ))}
+            </div>
           )}
         </div>
       )}
@@ -183,6 +224,6 @@ export const EventCard: React.FC<EventCardProps> = ({ event, onDragStart, onDrag
           </div>
         </motion.div>
       )}
-    </div>
+    </motion.div>
   );
 };

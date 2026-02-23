@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Grid8Day } from './components/Grid8Day';
 import { useItineraryStore } from './store/useItineraryStore';
 import { TimeSyncedBackground } from './components/TimeSyncedBackground';
@@ -11,6 +11,8 @@ import { LibraryView } from './components/LibraryView';
 import { RightInspector } from './components/RightInspector';
 import { ConnectionsView } from './components/ConnectionsView';
 import { supabase } from './lib/supabase';
+
+const MapPane = React.lazy(() => import('./components/MapPane'));
 
 const dummyEvents = [
   {
@@ -124,10 +126,17 @@ function App() {
 
       <WelcomeModal />
 
-      <div className="flex h-screen w-full overflow-auto">
+      <div className="flex h-screen w-full overflow-hidden">
         
-        {/* Center Pane */}
-        <div className="flex-1 flex flex-col relative z-10 w-full">
+        {/* Left Pane (Desktop 30%) lazy-loaded Map */}
+        <div className="hidden lg:flex lg:w-[30%] h-full shrink-0 border-r border-white/5 bg-black/20 relative z-10 flex-col">
+          <React.Suspense fallback={<div className="flex h-full items-center justify-center text-white/50 text-sm tracking-widest uppercase">Loading Map Info...</div>}>
+            <MapPane />
+          </React.Suspense>
+        </div>
+
+        {/* Center Pane (70% on Desktop, 100% on Mobile) */}
+        <div className="flex-1 flex flex-col relative z-10 w-full lg:w-[70%] h-full overflow-hidden">
           <header className="pt-8 pb-4 px-6 relative z-10 text-center shrink-0 flex flex-col items-center">
             
             <div className="absolute right-6 top-8 flex items-center gap-3">
@@ -162,8 +171,8 @@ function App() {
             <h1 className="text-4xl font-serif text-gold tracking-widest font-bold uppercase">The Connect</h1>
             <p className="text-xs tracking-[0.3em] text-white/50 uppercase mt-2 mb-8">Curated Tulum Itinerary</p>
 
-            {/* View Toggle */}
-            <div className="inline-flex bg-black/40 p-1 rounded-full border border-white/10 backdrop-blur-md">
+            {/* View Toggle (Desktop/Tablet Only) */}
+            <div className="hidden sm:inline-flex bg-black/40 p-1 rounded-full border border-white/10 backdrop-blur-md">
               <button 
                 onClick={() => setActiveView('connections')}
                 className={`px-4 sm:px-6 py-2 rounded-full text-[10px] sm:text-xs font-bold tracking-widest uppercase transition-all ${activeView === 'connections' ? 'bg-gold text-black shadow-[0_0_15px_rgba(212,175,55,0.3)]' : 'text-white/50 hover:text-white'}`}
@@ -225,6 +234,30 @@ function App() {
           </div>
         </div>
       </BottomSheet>
+
+      {/* Bottom Dock (Mobile Only) */}
+      <div className="sm:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-[45]">
+        <div className="flex items-center bg-black/70 backdrop-blur-2xl border border-white/10 p-1.5 rounded-full shadow-[0_10px_40px_rgba(0,0,0,0.6)]">
+          <button 
+            onClick={() => setActiveView('connections')}
+            className={`px-4 py-3 rounded-full text-[10px] font-bold tracking-widest uppercase transition-all ${activeView === 'connections' ? 'bg-gold text-deep' : 'text-white/70 hover:text-white'}`}
+          >
+            Essentials
+          </button>
+          <button 
+            onClick={() => setActiveView('discover')}
+            className={`px-4 py-3 rounded-full text-[10px] font-bold tracking-widest uppercase transition-all ${activeView === 'discover' ? 'bg-gold text-deep' : 'text-white/70 hover:text-white'}`}
+          >
+            Discover
+          </button>
+          <button 
+            onClick={() => setActiveView('itinerary')}
+            className={`px-4 py-3 rounded-full text-[10px] font-bold tracking-widest uppercase transition-all ${activeView === 'itinerary' ? 'bg-gold text-deep' : 'text-white/70 hover:text-white'}`}
+          >
+            Itinerary
+          </button>
+        </div>
+      </div>
 
       <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
       <ShareModal isOpen={isShareModalOpen} onClose={() => setIsShareModalOpen(false)} session={session} />

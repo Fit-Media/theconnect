@@ -29,6 +29,59 @@ const initialDays: Day[] = Array.from({ length: 8 }, (_, i) => ({
   events: [] as EventCard[],
 }));
 
+// Utility selector to find scheduling conflicts (e.g., tight travel times)
+export const getTravelConflicts = (days: Day[]): Set<string> => {
+  const conflicts = new Set<string>();
+  
+  // Parses "2:00 PM" into minutes from midnight
+  const parseTime = (timeStr?: string): number | null => {
+    if (!timeStr) return null;
+    const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
+    if (!match) return null;
+    let hours = parseInt(match[1], 10);
+    const minutes = parseInt(match[2], 10);
+    const isPM = match[3].toUpperCase() === 'PM';
+    
+    if (hours === 12) {
+      hours = isPM ? 12 : 0;
+    } else if (isPM) {
+      hours += 12;
+    }
+    
+    return hours * 60 + minutes;
+  };
+
+  days.forEach(day => {
+    const sorted = day.events
+      .map(e => ({ ...e, parsedTime: parseTime(e.time) }))
+      .filter(e => e.parsedTime !== null)
+      .sort((a, b) => a.parsedTime! - b.parsedTime!);
+
+    for (let i = 0; i < sorted.length - 1; i++) {
+      for (let j = i + 1; j < sorted.length; j++) {
+        const ev1 = sorted[i];
+        const ev2 = sorted[j];
+        
+        const timeDiff = Math.abs(ev1.parsedTime! - ev2.parsedTime!);
+        // Using a 75-minute buffer per user constraints
+        if (timeDiff <= 75) {
+          const loc1 = ev1.location?.trim().toLowerCase();
+          const loc2 = ev2.location?.trim().toLowerCase();
+          
+          if (loc1 && loc2 && loc1 !== loc2) {
+            conflicts.add(ev1.id);
+            conflicts.add(ev2.id);
+          }
+        } else {
+          break; // Stop comparing further away items
+        }
+      }
+    }
+  });
+
+  return conflicts;
+};
+
 export const useItineraryStore = create<ItineraryState>()(
   persist(
     (set) => ({

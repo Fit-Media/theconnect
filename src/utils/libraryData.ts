@@ -27,7 +27,7 @@ export const mockLibraryData: LibraryItem[] = [
     title: 'Rosa Negra',
     description: 'High-energy dining experience with Latin American cuisine, sparklers, and live bongo drums.',
     tags: ['Dinner', 'Party', 'Upscale'],
-    imageUrl: 'https://images.unsplash.com/photo-1544605937-23edacfa2bc0?auto=format&fit=crop&q=80&w=800',
+    imageUrl: 'https://images.unsplash.com/photo-1566417713940-fe7c737a9ef2?auto=format&fit=crop&q=80&w=800',
     websiteUrl: 'https://rosanegra.com.mx/en',
     googleMapsUrl: 'https://maps.google.com/?q=Rosa+Negra+Tulum',
     contactInfo: { phone: '+529841234567', email: 'hola@rosanegra.com.mx', whatsapp: '529841234567' }
@@ -38,7 +38,7 @@ export const mockLibraryData: LibraryItem[] = [
     title: 'Ilios Greek Estiatorio',
     description: 'Stunning architecture, plate smashing, and fire shows. Mediterranean fine dining.',
     tags: ['Dinner', 'Show', 'Greek'],
-    imageUrl: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&q=80&w=800',
+    imageUrl: 'https://images.unsplash.com/photo-1544124499-58912cbddaad?auto=format&fit=crop&q=80&w=800',
     websiteUrl: 'https://iliosrestaurante.com.mx/',
     googleMapsUrl: 'https://maps.google.com/?q=Ilios+Greek+Estiatorio+Tulum',
     contactInfo: { phone: '+529848765432', whatsapp: '529848765432' }
@@ -49,7 +49,7 @@ export const mockLibraryData: LibraryItem[] = [
     title: 'Taqueria Honorio',
     description: 'The absolute best cochinita pibil tacos in Tulum. Go for an early cheap and authentic breakfast.',
     tags: ['Breakfast', 'Authentic', 'Must Do'],
-    imageUrl: 'https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?auto=format&fit=crop&q=80&w=800',
+    imageUrl: 'https://images.unsplash.com/photo-1565299585323-38d6b0865b47?auto=format&fit=crop&q=80&w=800',
     isGoldKey: true,
     googleMapsUrl: 'https://maps.app.goo.gl/TaqueriaHonorio',
     websiteUrl: 'https://www.facebook.com/taqueriahonorio/'
@@ -85,7 +85,7 @@ export const mockLibraryData: LibraryItem[] = [
     title: 'Cenote Dos Ojos',
     description: 'Incredible underwater cave system perfect for both diving and snorkeling. Crystal clear water.',
     tags: ['Nature', 'Active', 'Morning'],
-    imageUrl: 'https://images.unsplash.com/photo-1682687982501-1e58f813fb31?auto=format&fit=crop&q=80&w=800',
+    imageUrl: 'https://images.unsplash.com/photo-1582967788606-a171c1080cb0?auto=format&fit=crop&q=80&w=800',
     isGoldKey: true,
     googleMapsUrl: 'https://maps.google.com/?q=Cenote+Dos+Ojos'
   },
@@ -95,7 +95,7 @@ export const mockLibraryData: LibraryItem[] = [
     title: 'Tulum Ruins',
     description: 'Ancient Mayan port city perched on a cliff above the Caribbean Sea.',
     tags: ['History', 'Culture', 'Views'],
-    imageUrl: 'https://images.unsplash.com/photo-1518638150340-f706e86654de?auto=format&fit=crop&q=80&w=800',
+    imageUrl: 'https://images.unsplash.com/photo-1504150558569-07860b404d5f?auto=format&fit=crop&q=80&w=800',
     googleMapsUrl: 'https://maps.google.com/?q=Tulum+Ruins'
   },
 
@@ -106,7 +106,7 @@ export const mockLibraryData: LibraryItem[] = [
     title: 'Verified Taxis',
     description: 'List of safe, verified WhatsApp taxi numbers with standard negotiated rates from the Hotel Zone.',
     tags: ['Logistics', 'Safety', 'Transport'],
-    imageUrl: 'https://images.unsplash.com/photo-1614777986035-716499696c14?auto=format&fit=crop&q=80&w=800',
+    imageUrl: 'https://images.unsplash.com/photo-1494905998402-395d579af36f?auto=format&fit=crop&q=80&w=800',
     isGoldKey: true,
     contactInfo: { whatsapp: '529841112222' }
   },
@@ -116,7 +116,7 @@ export const mockLibraryData: LibraryItem[] = [
     title: 'Safe ATMs',
     description: 'Map of reliable, low-fee ATMs that dispense both Pesos and USD securely.',
     tags: ['Money', 'Safety', 'Essentials'],
-    imageUrl: 'https://images.unsplash.com/photo-1620714223084-8fcacc6dfd8d?auto=format&fit=crop&q=80&w=800',
+    imageUrl: 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?auto=format&fit=crop&q=80&w=800',
     googleMapsUrl: 'https://maps.google.com/?q=Tulum+ATM'
   }
 ];

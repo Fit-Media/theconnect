@@ -47,19 +47,32 @@ app.post('/api/scrape-google-places', async (req, res) => {
 
     // Extract high-quality image URLs from the Google Images results dynamically loaded scripts
     const html = await page.content();
-    const urlRegex = /"(https:\/\/[^"]+\.(?:jpg|jpeg|png)(?:\?[^"]*)?)"/gi;
+
+    // Improved regex to handle escaped quotes and weird trailing characters from Google's dynamic scripts
+    const urlRegex = /"(https?:\/\/[^"\\\s]+\.(?:jpg|jpeg|png)(?:\?[^"\\\s]*)?)"/gi;
     const matches: string[] = [];
     let match;
     
     while ((match = urlRegex.exec(html)) !== null) {
+        const urlCandidate = match[1];
+        if (!urlCandidate) continue;
+
         // Exclude low-res thumbnails, favicons, and internal assets
-        if (!match[1].includes('encrypted-tbn0') && 
-            !match[1].includes('favicon') && 
-            !match[1].includes('gstatic.com') &&
-            !match[1].includes('google.com/')) {
-            // Unescape Unicode characters (e.g. \u003d -> =)
-            const cleanUrl = match[1].replace(/\\u003d/g, '=').replace(/\\u0026/g, '&');
-            matches.push(cleanUrl);
+        if (!urlCandidate.includes('encrypted-tbn0') && 
+            !urlCandidate.includes('favicon') && 
+            !urlCandidate.includes('gstatic.com') &&
+            !urlCandidate.includes('google.com/')) {
+            // Unescape Unicode characters and handle trailing garbage
+            const cleanUrl = urlCandidate
+                .replace(/\\u003d/g, '=')
+                .replace(/\\u0026/g, '&')
+                .replace(/\\u0022/g, '')
+                .split('"')[0]
+                .split('\\')[0];
+            
+            if (cleanUrl && cleanUrl.startsWith('http')) {
+                matches.push(cleanUrl);
+            }
         }
     }
 
@@ -78,7 +91,7 @@ app.post('/api/scrape-google-places', async (req, res) => {
 
     return res.json({ photos: formattedPhotos });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error(`[Scraper] Error scraping ${query}:`, error);
     return res.status(500).json({ error: 'Failed to scrape photos', details: String(error) });
   } finally {

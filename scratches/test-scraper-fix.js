@@ -26,3 +26,5 @@ const testScraper = async () => {
 };
 
 testScraper();
+
+testScraper();
