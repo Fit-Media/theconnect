@@ -39,6 +39,10 @@ export const aiSearch = async (query: string): Promise<Partial<EventCard>> => {
               "googleMapsUrl": "A strict Google Maps search URL following this exact format: https://www.google.com/maps/search/?api=1&query=[ENCODED_PLACE_NAME_AND_LOCATION]",
               "imageUrl": "A direct URL to a high-quality, real image of this place from Google Images or their website (e.g. ending in .jpg or .png)",
               "aiFactsAndTips": "✨ AI Tip: One interesting fact, dress code, or tip for travelers",
+              "coordinates": {
+                "lat": "number (exact latitude in Tulum)",
+                "lng": "number (exact longitude in Tulum)"
+              },
               "contactInfo": {
                 "phone": "EXTRACT THE EXACT PHONE NUMBER FROM THE GOOGLE SEARCH PANEL. DO NOT HALLUCINATE.",
                 "email": "Email address, if available",

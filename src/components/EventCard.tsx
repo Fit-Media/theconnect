@@ -51,8 +51,14 @@ export const EventCard: React.FC<EventCardProps> = ({ event, onDragStart, onDrag
       onDragOver={onDragOver}
       onDrop={(e: any) => onDrop(e, event.id)}
       onClick={() => selectEvent(event.id)}
-      whileTap={{ scale: 1.05 }}
-      className={`glass-panel p-4 rounded-xl mb-4 text-sand relative group cursor-grab active:cursor-grabbing transition-all ${event.isGoldKey ? 'border border-gold/50 shadow-[0_0_25px_rgba(212,175,55,0.3)]' : ''} ${isSelected ? 'ring-2 ring-gold' : ''}`}
+      whileTap={{ scale: 0.98 }}
+      whileHover={{ 
+        y: -5, 
+        boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 25px rgba(212,175,55,0.15)"
+      }}
+      initial={{ boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)" }}
+      transition={{ duration: 0.2, ease: "easeOut" }}
+      className={`glass-panel p-4 rounded-xl mb-4 text-sand relative group cursor-grab active:cursor-grabbing transition-colors ${event.isGoldKey ? 'border border-gold/50 shadow-[0_0_25px_rgba(212,175,55,0.3)]' : ''} ${isSelected ? 'ring-2 ring-gold' : ''}`}
     >
       {/* Top Right Controls */}
       <div className="absolute top-2 right-2 flex items-center gap-2">

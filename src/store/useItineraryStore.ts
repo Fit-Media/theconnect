@@ -13,6 +13,9 @@ interface ItineraryState {
   removeEvent: (dayId: string, eventId: string) => void;
   selectEvent: (eventId: string | null) => void;
   
+  activeDayId: string;
+  setActiveDayId: (id: string) => void;
+  
   // Library State
   libraryItems: LibraryItem[];
   selectedLibraryItemId: string | null;
@@ -86,6 +89,7 @@ export const useItineraryStore = create<ItineraryState>()(
   persist(
     (set) => ({
       days: initialDays,
+      activeDayId: 'day-1',
       selectedEventId: null as string | null,
       
       // Library Initial State
@@ -93,6 +97,7 @@ export const useItineraryStore = create<ItineraryState>()(
       selectedLibraryItemId: null as string | null,
 
       // Selections (mutually exclusive)
+      setActiveDayId: (id: string) => set({ activeDayId: id }),
       selectEvent: (eventId: string | null) => set({ selectedEventId: eventId, selectedLibraryItemId: null }),
       selectLibraryItem: (itemId: string | null) => set({ selectedLibraryItemId: itemId, selectedEventId: null }),
 

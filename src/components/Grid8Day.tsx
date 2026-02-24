@@ -1,11 +1,10 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { DayColumn } from './DayColumn';
 import { useItineraryStore } from '../store/useItineraryStore';
 
 export const Grid8Day: React.FC = () => {
-  const { days, moveEvent, reorderEvent } = useItineraryStore();
+  const { days, activeDayId, setActiveDayId, moveEvent, reorderEvent } = useItineraryStore();
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [activeDayId, setActiveDayId] = useState<string>(days[0]?.id || '');
 
   const handleDragStart = (e: React.DragEvent, eventId: string) => {
     e.dataTransfer.setData('eventId', eventId);

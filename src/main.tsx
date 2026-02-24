@@ -5,6 +5,16 @@ import './index.css'
 import App from './App.tsx'
 import { SharedTrip } from './pages/SharedTrip.tsx'
 
+import { polyfill } from "mobile-drag-drop";
+import { scrollBehaviourDragImageTranslateOverride } from "mobile-drag-drop/scroll-behaviour";
+import "mobile-drag-drop/default.css";
+
+polyfill({
+  dragImageTranslateOverride: scrollBehaviourDragImageTranslateOverride
+});
+
+// Polyfill requires an event listener for touchmove on window with passive: false 
+window.addEventListener('touchmove', function() {}, {passive: false});
 const router = createBrowserRouter([
   {
     path: "/",

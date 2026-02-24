@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { useItineraryStore } from '../store/useItineraryStore';
-import { X, MapPin, Clock, Phone, MessageCircle, Mail, Sparkles, Globe, Trash2 } from 'lucide-react';
+import { X, MapPin, Clock, Phone, MessageCircle, Mail, Sparkles, Globe, Trash2, Upload } from 'lucide-react';
 import type { EventCard } from '../types';
 import type { LibraryItem } from '../utils/libraryData';
 import { aiSearch } from '../utils/ai';
 import { GoogleReviewsWidget } from './GoogleReviewsWidget';
 import { GooglePhotosWidget } from './GooglePhotosWidget';
+import { storage } from '../lib/firebase';
+import { ref, uploadString, getDownloadURL } from 'firebase/storage';
 
 interface RightInspectorProps {
   onClose?: () => void;
@@ -135,6 +137,60 @@ export const RightInspector: React.FC<RightInspectorProps> = ({ onClose }) => {
     }
   };
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        // Max dimensions for compression
+        const MAX_WIDTH = 800;
+        const MAX_HEIGHT = 800;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0, width, height);
+
+        // Compress to 70% quality JPEG
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+        
+        const storageRef = ref(storage, `uploads/${Date.now()}_image.jpg`);
+        uploadString(storageRef, dataUrl, 'data_url').then((snapshot) => {
+          getDownloadURL(snapshot.ref).then((downloadURL) => {
+            handleEditChange('imageUrl', downloadURL);
+          });
+        }).catch(err => {
+          console.error("Firebase Storage Upload Error:", err);
+          alert("Failed to upload image. Please try again.");
+        });
+      };
+      if (typeof event.target?.result === 'string') {
+        img.src = event.target.result;
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleDelete = () => {
     if (activeItem) {
       if (confirm(`Are you sure you want to delete "${activeItem.title}"?`)) {
@@ -164,7 +220,7 @@ export const RightInspector: React.FC<RightInspectorProps> = ({ onClose }) => {
   };
 
   return (
-    <div className="w-full lg:w-[640px] h-full flex flex-col bg-[#1A1A1A]/80 border-l border-white/10 p-8 overflow-y-auto shrink-0 z-20 backdrop-blur-3xl shadow-[-10px_0_30px_rgba(0,0,0,0.5)]">
+    <div className="w-full h-full flex flex-col bg-[#1A1A1A]/80 border-l border-white/10 p-8 overflow-y-auto shrink-0 z-20 backdrop-blur-3xl shadow-[-10px_0_30px_rgba(0,0,0,0.5)]">
       {activeItem ? (
         <div className="space-y-6 animate-in fade-in duration-300">
           <div className="flex justify-between items-start">
@@ -185,8 +241,8 @@ export const RightInspector: React.FC<RightInspectorProps> = ({ onClose }) => {
                 >
                   {isEditing ? 'Save' : 'Edit'}
                 </button>
-              <button onClick={handleDelete} className="bg-white/[0.05] hover:bg-red-500/20 text-white/50 hover:text-red-400 w-8 h-8 rounded-full flex items-center justify-center transition-all active:scale-95" title="Delete Item">
-                <Trash2 size={14} />
+              <button onClick={handleDelete} className="bg-white/[0.05] hover:bg-red-500/20 text-white/50 hover:text-red-400 w-10 h-10 rounded-full flex items-center justify-center transition-all active:scale-95 shrink-0" title="Delete Item">
+                <Trash2 size={16} />
               </button>
               <button 
                 onClick={() => { 
@@ -195,9 +251,10 @@ export const RightInspector: React.FC<RightInspectorProps> = ({ onClose }) => {
                   setIsEditing(false); 
                   onClose?.(); 
                 }} 
-                className="bg-white/[0.05] hover:bg-white/10 text-white/50 hover:text-white w-8 h-8 rounded-full flex items-center justify-center transition-all active:scale-95"
+                className="bg-white/[0.1] hover:bg-white/20 text-white/70 hover:text-white w-10 h-10 rounded-full flex items-center justify-center transition-all active:scale-95 shadow-sm border border-white/5 shrink-0"
+                title="Close Inspector"
               >
-                <X size={16} />
+                <X size={20} />
               </button>
             </div>
           </div>
@@ -279,7 +336,19 @@ export const RightInspector: React.FC<RightInspectorProps> = ({ onClose }) => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-medium text-white/50 mb-1.5 block">Image URL</label>
+                  <label className="text-xs font-medium text-white/50 mb-1.5 flex items-center gap-2">
+                    Image URL
+                    <label className="flex items-center gap-1 px-2 py-1 bg-white/5 hover:bg-white/10 rounded cursor-pointer transition-colors ml-auto text-[10px] text-white/70">
+                      <Upload className="w-3 h-3" />
+                      Upload File
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        className="hidden" 
+                        onChange={handleImageUpload}
+                      />
+                    </label>
+                  </label>
                   <input
                    type="text"
                    placeholder="https://images.unsplash.com/..."

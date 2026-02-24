@@ -32,6 +32,10 @@ export interface EventCard {
   placeId?: string;
   imageUrl?: string; // AI fetched or manually added image for the card
   aiFactsAndTips?: string; // AI generated facts and tips
+  coordinates?: {
+    lat: number;
+    lng: number;
+  };
 }
 
 export interface Day {

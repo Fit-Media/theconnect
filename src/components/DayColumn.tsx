@@ -20,10 +20,8 @@ export const DayColumn: React.FC<DayColumnProps> = ({ day, onDragStart, onDropOn
       className="w-80 flex-shrink-0 bg-charcoal/50 border border-white/5 rounded-2xl p-4 flex flex-col h-full overflow-y-auto"
       onDragOver={handleDragOver}
       onDrop={(e) => {
-        // Only trigger column drop if the drop wasn't handled by an inner EventCard
-        if (e.target === e.currentTarget) {
-          onDropOnColumn(e, day.id);
-        }
+        // Trigger column drop (stopPropagation in EventCard prevents double-firing)
+        onDropOnColumn(e, day.id);
       }}
     >
       <div className="sticky top-0 bg-charcoal/90 z-10 pb-4 mb-4 border-b border-gold/20 flex justify-between items-center">

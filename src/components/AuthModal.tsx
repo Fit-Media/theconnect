@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Mail, ArrowRight, CheckCircle2, AlertCircle } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { X, Mail, ArrowRight, CheckCircle2, AlertCircle, Chrome } from 'lucide-react';
+import { auth } from '../lib/firebase';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -11,6 +12,8 @@ interface AuthModalProps {
 
 export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess }) => {
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
@@ -19,20 +22,33 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
     setLoading(true);
     setMessage(null);
 
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        emailRedirectTo: window.location.origin,
-      },
-    });
-
-    if (error) {
-      setMessage({ type: 'error', text: error.message });
-    } else {
-      setMessage({ type: 'success', text: 'Check your email for the magic link!' });
-      if (onSuccess) {
-        setTimeout(onSuccess, 3000);
+    try {
+      if (isSignUp) {
+        await createUserWithEmailAndPassword(auth, email, password);
+        setMessage({ type: 'success', text: 'Account created successfully!' });
+      } else {
+        await signInWithEmailAndPassword(auth, email, password);
+        setMessage({ type: 'success', text: 'Signed in successfully!' });
       }
+      if (onSuccess) setTimeout(onSuccess, 1500);
+      setTimeout(onClose, 1500);
+    } catch (error: any) {
+      setMessage({ type: 'error', text: error.message });
+    }
+    setLoading(false);
+  };
+
+  const handleGoogleSignIn = async () => {
+    setLoading(true);
+    setMessage(null);
+    try {
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+      setMessage({ type: 'success', text: 'Signed in with Google!' });
+      if (onSuccess) setTimeout(onSuccess, 1500);
+      setTimeout(onClose, 1500);
+    } catch (error: any) {
+      setMessage({ type: 'error', text: error.message });
     }
     setLoading(false);
   };
@@ -69,17 +85,31 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
               <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-gold/20 to-transparent flex items-center justify-center mx-auto mb-4 border border-gold/30">
                 <Mail className="text-gold" size={24} />
               </div>
-              <h2 className="text-2xl font-serif text-gold tracking-widest uppercase mb-2">Claim Your Access</h2>
-              <p className="text-sm text-sand/70">Sign in via Magic Link to save and share your curated itinerary.</p>
+              <h2 className="text-2xl font-serif text-gold tracking-widest uppercase mb-2">
+                {isSignUp ? 'Create Account' : 'Claim Your Access'}
+              </h2>
+              <p className="text-sm text-sand/70">
+                {isSignUp 
+                  ? 'Sign up to build and save your curated itinerary.' 
+                  : 'Sign in to access your curated itinerary.'}
+              </p>
             </div>
 
             <form onSubmit={handleLogin} className="space-y-4 relative z-10">
-              <div>
+              <div className="space-y-4">
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter your email address"
+                  placeholder="Email address"
+                  required
+                  className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm text-sand focus:outline-none focus:border-gold/50 transition-colors placeholder:text-white/30"
+                />
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Password"
                   required
                   className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm text-sand focus:outline-none focus:border-gold/50 transition-colors placeholder:text-white/30"
                 />
@@ -97,13 +127,37 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
                 disabled={loading || message?.type === 'success'}
                 className="w-full bg-gold text-deep font-bold tracking-widest uppercase py-3 rounded-xl hover:bg-gold/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                {loading ? 'Sending...' : 'Send Magic Link'}
+                {loading ? 'Processing...' : (isSignUp ? 'Create Account' : 'Sign In')}
                 {!loading && <ArrowRight size={18} />}
               </button>
             </form>
 
+            <div className="mt-4 relative z-10">
+              <button
+                onClick={handleGoogleSignIn}
+                disabled={loading || message?.type === 'success'}
+                className="w-full border border-white/20 bg-black/40 text-sand font-bold tracking-widest uppercase py-3 rounded-xl hover:bg-white/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                <Chrome size={18} />
+                Continue with Google
+              </button>
+            </div>
+
+            <div className="mt-6 text-center relative z-10">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsSignUp(!isSignUp);
+                  setMessage(null);
+                }}
+                className="text-white/50 hover:text-gold text-xs tracking-widest uppercase transition-colors"
+              >
+                {isSignUp ? 'Already have an account? Sign In' : 'Need an account? Sign Up'}
+              </button>
+            </div>
+
             <p className="text-center text-[10px] text-white/30 tracking-widest uppercase mt-6 relative z-10">
-              Secure authentication via Supabase
+              Secure authentication via Firebase
             </p>
           </motion.div>
         </div>

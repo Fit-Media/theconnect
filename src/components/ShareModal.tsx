@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Share2, Copy, Check, Loader2 } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { db } from '../lib/firebase';
+import { collection, addDoc } from 'firebase/firestore';
 import { useItineraryStore } from '../store/useItineraryStore';
+import { useConnectionsStore } from '../store/useConnectionsStore';
 
 interface ShareModalProps {
   isOpen: boolean;
@@ -11,39 +13,32 @@ interface ShareModalProps {
 }
 
 export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, session }) => {
-  const { days } = useItineraryStore();
+  const { days, libraryItems } = useItineraryStore();
+  const { widgets } = useConnectionsStore();
   const [loading, setLoading] = useState(false);
   const [shareLink, setShareLink] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const generateShareLink = async () => {
-    if (!session?.user) return;
+    if (!session) return;
     
     setLoading(true);
     setError(null);
 
-    // Save itinerary to Supabase 'itineraries' table
-    // Assuming table structure: id (uuid), user_id (uuid), data (jsonb)
-    const { data, error: dbError } = await supabase
-      .from('itineraries')
-      .insert({
-        user_id: session.user.id,
+    try {
+      const docRef = await addDoc(collection(db, 'itineraries'), {
+        user_id: session.uid,
         data: days,
-      })
-      .select('id')
-      .single();
-
-    if (dbError) {
-      console.error(dbError);
-      setError('Could not generate link. Create the "itineraries" table in Supabase first!');
-      setLoading(false);
-      return;
-    }
-
-    if (data) {
-      const url = `${window.location.origin}/shared/${data.id}`;
+        library: libraryItems,
+        essentials: widgets,
+        createdAt: new Date().toISOString(),
+      });
+      const url = `${window.location.origin}/shared/${docRef.id}`;
       setShareLink(url);
+    } catch (dbError) {
+      console.error(dbError);
+      setError('Could not generate link. Make sure Firestore rules allow writes!');
     }
     
     setLoading(false);
